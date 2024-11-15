@@ -1,0 +1,74 @@
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Set canvas dimensions
+canvas.width = 320;
+canvas.height = 480;
+
+// Bird settings
+const bird = {
+    x: 50,
+    y: canvas.height / 2,
+    width: 20,
+    height: 20,
+    speed: 0,
+    gravity: 0.6,
+    lift: -15,
+    velocity: 0,
+};
+
+// Pipe settings
+const pipes = [];
+const pipeWidth = 60;
+const pipeGap = 150;
+const pipeSpeed = 2;
+let pipeInterval = 0;
+let score = 0;
+
+// Game mechanics
+function update() {
+    // Bird gravity
+    bird.velocity += bird.gravity;
+    bird.y += bird.velocity;
+
+    // Game over if bird hits the ground or goes off-screen
+    if (bird.y + bird.height >= canvas.height || bird.y < 0) {
+        resetGame();
+    }
+
+    // Pipe movement and creation
+    pipeInterval++;
+    if (pipeInterval > 80) {
+        createPipe();
+        pipeInterval = 0;
+    }
+
+    for (let i = 0; i < pipes.length; i++) {
+        pipes[i].x -= pipeSpeed;
+
+        // Check collision with pipes
+        if (bird.x + bird.width > pipes[i].x && bird.x < pipes[i].x + pipeWidth) {
+            if (bird.y < pipes[i].topHeight || bird.y + bird.height > pipes[i].bottomY) {
+                resetGame();
+            }
+        }
+
+        // Remove passed pipes
+        if (pipes[i].x + pipeWidth < 0) {
+            pipes.splice(i, 1);
+            score++;
+        }
+    }
+
+    // Redraw everything
+    draw();
+}
+
+// Create new pipe
+function createPipe() {
+    const pipeHeight = Math.floor(Math.random() * (canvas.height - pipeGap));
+    pipes.push({
+        x: canvas.width,
+        topHeight: pipeHeight,
+        bottomY: pipeHeight + pipeGap,
+    });
